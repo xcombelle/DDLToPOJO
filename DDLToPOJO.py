@@ -71,7 +71,7 @@ def main():
                         data_type = ''
                         for sql_type in data_types.keys():
                             if sql_type in list[2]:
-                                data_type = data_types.get(sql_type)
+                                data_type = data_types[sql_type]
                                 break
                         member = {'member_name': member_name, 'data_type': data_type}
                         members.append(member)
@@ -79,16 +79,12 @@ def main():
                 # Creating imports
                 import_sets = set()
                 for member in members:
-                    if member.get('data_type') in 'Date':
-                        import_sets.add('import java.sql.Date;')
-                    if member.get('data_type') in 'Timestamp':
-                        import_sets.add('import java.sql.Timestamp;')
-                    if member.get('data_type') in 'BigDecimal':
-                        import_sets.add('import java.math.BigDecimal;')
-                    if member.get('data_type') in 'Blob':
-                        import_sets.add('import java.sql.Blob;')
-                    if member.get('data_type') in 'Clob':
-                        import_sets.add('import java.sql.Clob;')
+                    data_type = member['data_type']
+                    if data_type == 'BigDecimal':
+                        package = 'java.math'
+                    else:
+                        package = 'java.sql'
+                    import_sets.add('import '+package+'.'+data_type)
 
                 # Create Java Model Object
                 javaObj = JavaObj(table_name, members, import_sets)
@@ -125,16 +121,16 @@ def createClass(jObj):
 
     # Starting body of Class
     for member in jObj.members:
-        f.write('\tprivate ' + member.get('data_type') + ' ' + member.get('member_name') + ';\n')
+        f.write('\tprivate ' + member['data_type'] + ' ' + member['member_name'] + ';\n')
 
     # Starting Constuctor
     constructor = '\npublic ' + jObj.name + '('
     i = 1
     for member in jObj.members:
         if i == len(jObj.members):
-            constructor += member.get('data_type') + ' ' + member.get('member_name') + ''
+            constructor += member['data_type'] + ' ' + member['member_name'] + ''
         else:
-            constructor += member.get('data_type') + ' ' + member.get('member_name') + ', '
+            constructor += member['data_type'] + ' ' + member['member_name'] + ', '
         i += 1
     # i = 0
     constructor += ') {\n\n'
@@ -142,11 +138,11 @@ def createClass(jObj):
     f.write(constructor)
     # Writing getters to file
     for member in jObj.members:
-        f.write('\tthis.' + member.get('member_name') + ' = ' + member.get('member_name') + ';\n')
+        f.write('\tthis.' + member['member_name'] + ' = ' + member['member_name'] + ';\n')
     f.write('}\n')
     for member in jObj.members:
-        f.write('\n\tpublic ' + member.get('data_type') + ' get' + upcase_first_letter(
-            member.get('member_name')) + '() {\n\t\treturn ' + member.get('member_name') + ';\n\t}')
+        f.write('\n\tpublic ' + member['data_type'] + ' get' + upcase_first_letter(
+            member['member_name']) + '() {\n\t\treturn ' + member['member_name'] + ';\n\t}')
     f.write('\n}\n')
     f.close()
 
